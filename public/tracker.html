@@ -250,7 +250,8 @@
     { label: "Ethereum", value: "ethereum" }, { label: "BSC", value: "bsc" },
   ];
 
-  let backendUrl = "http://localhost:4000";
+  let backendUrl = window.location.origin;
+  document.addEventListener("DOMContentLoaded", () => { document.getElementById("urlLabel").textContent = backendUrl; });
   let threshold = 100000;
   let chainFilter = "ALL";
   let paused = false;
