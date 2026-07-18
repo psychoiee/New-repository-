@@ -201,9 +201,7 @@
   </div>
 
   <div class="wt-banner" id="errorBanner">
-    Backend سے رابطہ نہیں ہو سکا۔ یقینی بنائیں کہ آپ نے اپنے کمپیوٹر پر
-    <code>npm start</code> چلا رکھا ہے (whale-tracker-backend فولڈر میں) اور یہ HTML فائل
-    اسی کمپیوٹر پر براؤزر میں کھلی ہے۔ اوپر ✎ پر کلک کر کے backend کا URL بھی تبدیل کر سکتے ہیں۔
+    Couldn't reach the backend. Make sure the server is running, or tap ✎ above to change the backend URL.
   </div>
 
   <div class="wt-stats">
@@ -332,7 +330,7 @@
 
     const body = document.getElementById("tableBody");
     if (filtered.length === 0) {
-      body.innerHTML = `<div class="wt-empty">ابھی کوئی transaction اس threshold سے اوپر نہیں ملی — تھوڑی دیر انتظار کریں یا threshold کم کریں۔</div>`;
+      body.innerHTML = `<div class="wt-empty">No transactions above this threshold yet — wait a moment or lower the threshold.</div>`;
       return;
     }
     body.innerHTML = filtered.map((t, i) => {
