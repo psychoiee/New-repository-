@@ -382,7 +382,7 @@
     socket = new WebSocket(wsUrl);
     socket.onopen = () => setStatus("connected");
     socket.onerror = () => setStatus("error");
-    socket.onclose = () => setStatus("error");
+    socket.onclose = () => { setStatus("error"); if (!paused) setTimeout(connectSocket, 4000); };
     socket.onmessage = (event) => {
       try {
         const msg = JSON.parse(event.data);
