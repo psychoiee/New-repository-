@@ -12,6 +12,7 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 app.use(express.static("public"));
+app.get("/", (req, res) => res.redirect("/tracker.html"));
 app.use("/api", apiRoutes);
 
 const server = http.createServer(app);
