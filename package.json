@@ -1,0 +1,17 @@
+{
+  "name": "whale-tracker-backend",
+  "version": "0.1.0",
+  "description": "Multi-chain large-transaction (whale) tracker backend",
+  "main": "server.js",
+  "type": "commonjs",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.19.2",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "ws": "^8.17.0",
+    "node-fetch": "^2.7.0"
+  }
+}
