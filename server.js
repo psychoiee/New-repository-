@@ -26,7 +26,8 @@ wss.on("connection", (socket) => {
 });
 
 const PORT = process.env.PORT || 4000;
-server.listen(PORT, () => {
+server.listen(PORT, async () => {
   console.log(`Whale tracker backend running on port ${PORT}`);
+  await store.loadFromRedis();
   startPolling();
 });
