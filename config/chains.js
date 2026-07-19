@@ -9,6 +9,7 @@ const evmChains = [
 const rpcChains = [
   { id: "bsc", label: "BNB Smart Chain", nativeSymbol: "BNB", rpcUrlEnv: "BSC_RPC_URL", coingeckoId: "binancecoin", avgBlockTimeMs: 3000 },
   { id: "solana", label: "Solana", nativeSymbol: "SOL", rpcUrlEnv: "SOLANA_RPC_URL", coingeckoId: "solana", avgBlockTimeMs: 1000, kind: "solana" },
+  { id: "tron", label: "Tron", nativeSymbol: "TRX", apiKeyEnv: "TRONGRID_API_KEY", coingeckoId: "tron", avgBlockTimeMs: 3000, kind: "tron" },
 ];
 
 const nonEvmChains = [
