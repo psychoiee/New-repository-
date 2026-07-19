@@ -1,7 +1,16 @@
 const fetch = require("node-fetch");
 const { getPriceUsd } = require("../services/priceService");
 
+let lastCallAt = 0;
+async function throttle() {
+  const minGapMs = 400; // stay under Etherscan's 3 req/sec shared limit
+  const wait = lastCallAt + minGapMs - Date.now();
+  if (wait > 0) await new Promise((r) => setTimeout(r, wait));
+  lastCallAt = Date.now();
+}
+
 async function rpc(apiBase, chainId, apiKey, method, params) {
+  await throttle();
   const url = new URL(apiBase);
   url.searchParams.set("chainid", chainId);
   url.searchParams.set("module", "proxy");
@@ -33,7 +42,7 @@ async function poll(chainConfig, state, thresholdUsd) {
   const latestHex = await rpc(chainConfig.apiBase, chainConfig.chainId, apiKey, "eth_blockNumber", {});
   const latestBlock = Number(hexToBigInt(latestHex));
   let lastBlock = state.lastBlock ?? latestBlock - 1;
-  if (latestBlock - lastBlock > 5) lastBlock = latestBlock - 5;
+  if (latestBlock - lastBlock > 2) lastBlock = latestBlock - 2;
   const priceUsd = await getPriceUsd(chainConfig.coingeckoId);
   const newTransactions = [];
   for (let b = lastBlock + 1; b <= latestBlock; b++) {
