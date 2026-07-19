@@ -1,5 +1,7 @@
 const fetch = require("node-fetch");
 const { getPriceUsd } = require("../services/priceService");
+const { pollTokensRpc } = require("../services/tokenWatch");
+const watchedTokens = require("../config/tokens");
 
 async function rpc(rpcUrl, method, params) {
   const res = await fetch(rpcUrl, {
@@ -47,6 +49,23 @@ async function poll(chainConfig, state, thresholdUsd) {
       }
     }
   }
+  const tokens = watchedTokens[chainConfig.id] || [];
+  if (tokens.length) {
+    try {
+      const tokenTxs = await pollTokensRpc({
+        rpcUrl,
+        chainId: chainConfig.id,
+        tokens,
+        fromBlockHex: "0x" + (lastBlock + 1).toString(16),
+        toBlockHex: "0x" + latestBlock.toString(16),
+        thresholdUsd,
+      });
+      newTransactions.push(...tokenTxs);
+    } catch (e) {
+      // token lookups are a bonus feature - never let them break native tracking
+    }
+  }
+
   return { newTransactions, nextState: { lastBlock: latestBlock } };
 }
 

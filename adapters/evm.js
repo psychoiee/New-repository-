@@ -1,5 +1,7 @@
 const fetch = require("node-fetch");
 const { getPriceUsd } = require("../services/priceService");
+const { pollTokensEtherscan } = require("../services/tokenWatch");
+const watchedTokens = require("../config/tokens");
 
 let lastCallAt = 0;
 let queue = Promise.resolve();
@@ -73,6 +75,27 @@ async function poll(chainConfig, state, thresholdUsd) {
       }
     }
   }
+  const tokens = watchedTokens[chainConfig.id] || [];
+  if (tokens.length) {
+    try {
+      const tokenTxs = await pollTokensEtherscan({
+        apiBase: chainConfig.apiBase,
+        chainId: chainConfig.chainId,
+        apiKey,
+        tokens,
+        fromBlock: lastBlock + 1,
+        toBlock: latestBlock,
+        thresholdUsd,
+      });
+      for (const tx of tokenTxs) {
+        tx.chain = chainConfig.id;
+        newTransactions.push(tx);
+      }
+    } catch (e) {
+      // token lookups are a bonus feature - never let them break native tracking
+    }
+  }
+
   return { newTransactions, nextState: { lastBlock: latestBlock } };
 }
 
