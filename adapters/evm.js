@@ -23,10 +23,19 @@ async function rpc(apiBase, chainId, apiKey, method, params) {
   url.searchParams.set("action", method);
   Object.entries(params).forEach(([k, v]) => url.searchParams.set(k, v));
   url.searchParams.set("apikey", apiKey);
-  const res = await fetch(url.toString());
-  const data = await res.json();
-  if (data.error) throw new Error(`RPC ${method} failed: ${JSON.stringify(data.error)}`);
-  return data.result;
+  let lastErr;
+  for (let attempt = 0; attempt < 3; attempt++) {
+    try {
+      const res = await fetch(url.toString());
+      const data = await res.json();
+      if (data.error) throw new Error(`RPC ${method} failed: ${JSON.stringify(data.error)}`);
+      return data.result;
+    } catch (err) {
+      lastErr = err;
+      await new Promise((r) => setTimeout(r, 800 * (attempt + 1))); // brief backoff before retrying
+    }
+  }
+  throw lastErr;
 }
 
 function hexToBigInt(hex) {
