@@ -1,6 +1,7 @@
 const { evmChains, rpcChains, nonEvmChains } = require("../config/chains");
 const evmAdapter = require("../adapters/evm");
 const jsonRpcEvmAdapter = require("../adapters/jsonRpcEvm");
+const solanaAdapter = require("../adapters/solana");
 const bitcoinAdapter = require("../adapters/bitcoin");
 const store = require("./store");
 
@@ -13,11 +14,7 @@ function getThresholdUsd() {
 async function pollChain(chainConfig, adapter) {
   const state = chainState[chainConfig.id] || {};
   try {
-    const { newTransactions, nextState, warning } = await adapter.poll(
-      chainConfig,
-      state,
-      getThresholdUsd()
-    );
+    const { newTransactions, nextState, warning } = await adapter.poll(chainConfig, state, getThresholdUsd());
     if (warning) console.warn(`[${chainConfig.id}] ${warning}`);
     chainState[chainConfig.id] = nextState;
     if (newTransactions.length) {
@@ -37,9 +34,10 @@ function startPolling() {
   }
 
   for (const chainConfig of rpcChains) {
+    const adapter = chainConfig.kind === "solana" ? solanaAdapter : jsonRpcEvmAdapter;
     const intervalMs = Math.max(chainConfig.avgBlockTimeMs, 3000);
-    pollChain(chainConfig, jsonRpcEvmAdapter);
-    setInterval(() => pollChain(chainConfig, jsonRpcEvmAdapter), intervalMs);
+    pollChain(chainConfig, adapter);
+    setInterval(() => pollChain(chainConfig, adapter), intervalMs);
   }
 
   for (const chainConfig of nonEvmChains) {
