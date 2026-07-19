@@ -1,7 +1,7 @@
 const fetch = require("node-fetch");
 
 const cache = new Map();
-const CACHE_MS = 60 * 1000;
+const CACHE_MS = 5 * 60 * 1000;
 
 async function getPriceUsd(coingeckoId) {
   const cached = cache.get(coingeckoId);
