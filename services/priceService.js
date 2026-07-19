@@ -1,17 +1,16 @@
 const fetch = require("node-fetch");
 
-// Fetch ALL needed coin prices in a single CoinGecko request instead of one
-// request per chain - this avoids hitting CoinGecko's free-tier rate limit
-// when several chains poll around the same time.
-
 const ALL_IDS = [
   "bitcoin", "ethereum", "binancecoin", "solana",
-  "polygon-ecosystem-token", "tron",
+  "polygon-ecosystem-token", "tron", "lab",
 ];
 
 let cache = {}; // id -> price
-let lastFetch = 0;
-const CACHE_MS = 5 * 60 * 1000;
+let lastSuccessAt = 0;
+let lastAttemptAt = 0;
+const CACHE_MS = 5 * 60 * 1000;      // treat a price as "fresh enough" for 5 minutes
+const RETRY_COOLDOWN_MS = 60 * 1000; // never re-hit CoinGecko more than once a minute,
+                                      // even if some ids are still missing from the cache
 let inFlight = null;
 
 async function refreshAll() {
@@ -25,7 +24,7 @@ async function refreshAll() {
         cache[id] = data[id].usd;
       }
     }
-    lastFetch = Date.now();
+    lastSuccessAt = Date.now();
   })();
   try {
     await inFlight;
@@ -35,14 +34,19 @@ async function refreshAll() {
 }
 
 async function getPriceUsd(coingeckoId) {
-  const stale = Date.now() - lastFetch > CACHE_MS;
-  if (stale || !(coingeckoId in cache)) {
+  const stale = Date.now() - lastSuccessAt > CACHE_MS;
+  const missing = !(coingeckoId in cache);
+  const cooledDown = Date.now() - lastAttemptAt > RETRY_COOLDOWN_MS;
+
+  if ((stale || missing) && cooledDown) {
+    lastAttemptAt = Date.now();
     try {
       await refreshAll();
     } catch (e) {
-      // ignore fetch failure here - fall through to cache/fallback below
+      // leave cache as-is; we'll try again after the cooldown
     }
   }
+
   if (typeof cache[coingeckoId] === "number") return cache[coingeckoId];
   throw new Error(`Could not fetch price for ${coingeckoId}`);
 }
