@@ -2,10 +2,13 @@ const EVM_API_BASE = "https://api.etherscan.io/v2/api";
 
 const evmChains = [
   { id: "ethereum", label: "Ethereum", nativeSymbol: "ETH", apiBase: EVM_API_BASE, chainId: 1, apiKeyEnv: "ETHERSCAN_API_KEY", coingeckoId: "ethereum", avgBlockTimeMs: 12000 },
+  { id: "polygon", label: "Polygon", nativeSymbol: "POL", apiBase: EVM_API_BASE, chainId: 137, apiKeyEnv: "ETHERSCAN_API_KEY", coingeckoId: "matic-network", avgBlockTimeMs: 2000 },
+  { id: "arbitrum", label: "Arbitrum", nativeSymbol: "ETH", apiBase: EVM_API_BASE, chainId: 42161, apiKeyEnv: "ETHERSCAN_API_KEY", coingeckoId: "ethereum", avgBlockTimeMs: 500 },
 ];
 
 const rpcChains = [
   { id: "bsc", label: "BNB Smart Chain", nativeSymbol: "BNB", rpcUrlEnv: "BSC_RPC_URL", coingeckoId: "binancecoin", avgBlockTimeMs: 3000 },
+  { id: "solana", label: "Solana", nativeSymbol: "SOL", rpcUrlEnv: "SOLANA_RPC_URL", coingeckoId: "solana", avgBlockTimeMs: 1000, kind: "solana" },
 ];
 
 const nonEvmChains = [
