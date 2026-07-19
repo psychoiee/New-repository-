@@ -32,7 +32,7 @@ function pickAdapter(chainConfig) {
 
 function startPolling() {
   for (const chainConfig of evmChains) {
-    const intervalMs = Math.max(chainConfig.avgBlockTimeMs, 3000);
+    const intervalMs = Math.max(chainConfig.avgBlockTimeMs, 8000);
     pollChain(chainConfig, evmAdapter);
     setInterval(() => pollChain(chainConfig, evmAdapter), intervalMs);
   }
