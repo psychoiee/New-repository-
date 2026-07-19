@@ -7,7 +7,7 @@ function throttle() {
   // Chain every call onto a single queue so requests are strictly
   // serialized (no two calls can race past the gap check together).
   queue = queue.then(async () => {
-    const minGapMs = 500; // stay comfortably under Etherscan's 3 req/sec shared limit
+    const minGapMs = 800; // stay comfortably under Etherscan's 3 req/sec shared limit
     const wait = lastCallAt + minGapMs - Date.now();
     if (wait > 0) await new Promise((r) => setTimeout(r, wait));
     lastCallAt = Date.now();
@@ -48,7 +48,7 @@ async function poll(chainConfig, state, thresholdUsd) {
   const latestHex = await rpc(chainConfig.apiBase, chainConfig.chainId, apiKey, "eth_blockNumber", {});
   const latestBlock = Number(hexToBigInt(latestHex));
   let lastBlock = state.lastBlock ?? latestBlock - 1;
-  if (latestBlock - lastBlock > 2) lastBlock = latestBlock - 2;
+  if (latestBlock - lastBlock > 1) lastBlock = latestBlock - 1;
   const priceUsd = await getPriceUsd(chainConfig.coingeckoId);
   const newTransactions = [];
   for (let b = lastBlock + 1; b <= latestBlock; b++) {
