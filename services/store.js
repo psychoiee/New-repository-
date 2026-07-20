@@ -15,7 +15,11 @@ const listeners = new Set();
 let loaded = false;
 
 async function redisCommand(command) {
-  if (!UPSTASH_URL || !UPSTASH_TOKEN) return null;
+  if (!UPSTASH_URL || !UPSTASH_TOKEN) {
+    console.warn("[store] Upstash credentials missing - UPSTASH_REDIS_REST_URL or UPSTASH_REDIS_REST_TOKEN not set. Skipping persistence.");
+    return null;
+  }
+  console.log("[store] sending Redis command:", command[0]);
   const res = await fetch(UPSTASH_URL, {
     method: "POST",
     headers: {
