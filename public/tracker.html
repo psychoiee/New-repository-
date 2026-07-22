@@ -373,6 +373,8 @@
       .catch(() => setStatus("error"));
   }
 
+  let lastMsgTime = Date.now();
+  setInterval(() => { if (Date.now() - lastMsgTime > 90000) { connectSocket(); } }, 20000);
   function connectSocket() {
     if (socket) { try { socket.close(); } catch (e) {} }
     if (paused) return;
@@ -383,6 +385,7 @@
     socket.onerror = () => setStatus("error");
     socket.onclose = () => { setStatus("error"); if (!paused) setTimeout(connectSocket, 4000); };
     socket.onmessage = (event) => {
+      lastMsgTime = Date.now();
       try {
         const msg = JSON.parse(event.data);
         if (msg.type === "transaction") {
