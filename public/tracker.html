@@ -374,7 +374,8 @@
   }
 
   let lastMsgTime = Date.now();
-  setInterval(() => { if (Date.now() - lastMsgTime > 90000) { connectSocket(); } }, 20000);
+  setInterval(() => { loadInitial(); }, 60000);
+  setInterval(() => { if (Date.now() - lastMsgTime > 90000) { connectSocket(); loadInitial(); } }, 20000);
   function connectSocket() {
     if (socket) { try { socket.close(); } catch (e) {} }
     if (paused) return;
