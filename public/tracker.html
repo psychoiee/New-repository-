@@ -221,6 +221,7 @@
 
   <div class="wt-controls" id="thresholdChips"></div>
   <div class="wt-controls" id="chainChips" style="margin-top:-6px;"></div>
+  <div class="wt-controls" id="coinChips" style="margin-top:-6px;"></div>
 
   <div class="wt-table-wrap">
     <div class="wt-row-head">
@@ -240,6 +241,10 @@
     { label: "$100K+", value: 100000 }, { label: "$500K+", value: 500000 },
     { label: "$1M+", value: 1000000 }, { label: "$5M+", value: 5000000 },
   ];
+  const COIN_FILTERS = [
+    { label: "All coins", value: "ALL" }, { label: "USDT", value: "USDT" },
+  ];
+
   const CHAIN_FILTERS = [
     { label: "All chains", value: "ALL" }, { label: "Bitcoin", value: "bitcoin" },
     { label: "Ethereum", value: "ethereum" }, { label: "BSC", value: "bsc" },
@@ -251,6 +256,8 @@
   document.addEventListener("DOMContentLoaded", () => { document.getElementById("urlLabel").textContent = backendUrl; });
   let threshold = 100000;
   let chainFilter = "ALL";
+  let coinFilter = "ALL";
+  let coinFilter = "ALL";
   let paused = false;
   let txs = [];
   let socket = null;
@@ -315,12 +322,19 @@
     cEl.querySelectorAll("[data-chain]").forEach(el => {
       el.onclick = () => { chainFilter = el.dataset.chain; onFilterChange(); };
     });
+    const coEl = document.getElementById("coinChips");
+    coEl.innerHTML = COIN_FILTERS.map(c =>
+      `<div class="wt-chip ${c.value === coinFilter ? "active" : ""}" data-coin="${c.value}">${c.label}</div>`
+    ).join("");
+    coEl.querySelectorAll("[data-coin]").forEach(el => {
+      el.onclick = () => { coinFilter = el.dataset.coin; onFilterChange(); };
+    });
   }
 
   function render() {
     document.getElementById("statThreshold").textContent = fmtUsd(threshold) + "+";
     const filtered = txs.filter(t =>
-      t.usdValue >= threshold && (chainFilter === "ALL" || t.chain === chainFilter)
+      t.usdValue >= threshold && (chainFilter === "ALL" || t.chain === chainFilter) && (coinFilter === "ALL" || t.symbol === coinFilter)
     ).slice(0, 25);
 
     document.getElementById("statCount").textContent = filtered.length;
