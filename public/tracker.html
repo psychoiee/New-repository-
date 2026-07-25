@@ -221,7 +221,6 @@
 
   <div class="wt-controls" id="thresholdChips"></div>
   <div class="wt-controls" id="chainChips" style="margin-top:-6px;"></div>
-  <div class="wt-controls" id="coinChips" style="margin-top:-6px;"></div>
 
   <div class="wt-table-wrap">
     <div class="wt-row-head">
@@ -247,7 +246,7 @@
 
   const CHAIN_FILTERS = [
     { label: "All chains", value: "ALL" }, { label: "Bitcoin", value: "bitcoin" },
-    { label: "Ethereum", value: "ethereum" }, { label: "BSC", value: "bsc" },
+    { label: "Ethereum", value: "ethereum" }, { label: "USDT", value: "COIN:USDT" }, { label: "BSC", value: "bsc" },
     { label: "Solana", value: "solana" }, { label: "Polygon", value: "polygon" },
     { label: "Arbitrum", value: "arbitrum" }, { label: "Base", value: "base" }, { label: "Tron", value: "tron" },
   ];
@@ -316,17 +315,15 @@
 
     const cEl = document.getElementById("chainChips");
     cEl.innerHTML = CHAIN_FILTERS.map(c =>
-      `<div class="wt-chip ${c.value === chainFilter ? "active" : ""}" data-chain="${c.value}">${c.label}</div>`
+      `<div class="wt-chip ${(c.value.startsWith("COIN:") ? coinFilter === c.value.slice(5) : c.value === chainFilter) ? "active" : ""}" data-chain="${c.value}">${c.label}</div>`
     ).join("");
     cEl.querySelectorAll("[data-chain]").forEach(el => {
-      el.onclick = () => { chainFilter = el.dataset.chain; onFilterChange(); };
-    });
-    const coEl = document.getElementById("coinChips");
-    coEl.innerHTML = COIN_FILTERS.map(c =>
-      `<div class="wt-chip ${c.value === coinFilter ? "active" : ""}" data-coin="${c.value}">${c.label}</div>`
-    ).join("");
-    coEl.querySelectorAll("[data-coin]").forEach(el => {
-      el.onclick = () => { coinFilter = el.dataset.coin; onFilterChange(); };
+      el.onclick = () => {
+        const v = el.dataset.chain;
+        if (v.startsWith("COIN:")) { coinFilter = v.slice(5); chainFilter = "ALL"; }
+        else { chainFilter = v; coinFilter = "ALL"; }
+        onFilterChange();
+      };
     });
   }
 
