@@ -5,4 +5,5 @@ module.exports = {
   ethereum: [],
   polygon: [],
   arbitrum: [],
+  base: [],
 };

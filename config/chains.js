@@ -4,6 +4,7 @@ const evmChains = [
   { id: "ethereum", label: "Ethereum", nativeSymbol: "ETH", apiBase: EVM_API_BASE, chainId: 1, apiKeyEnv: "ETHERSCAN_API_KEY", coingeckoId: "ethereum", avgBlockTimeMs: 12000 },
   { id: "polygon", label: "Polygon", nativeSymbol: "POL", apiBase: EVM_API_BASE, chainId: 137, apiKeyEnv: "ETHERSCAN_API_KEY", coingeckoId: "polygon-ecosystem-token", avgBlockTimeMs: 2000 },
   { id: "arbitrum", label: "Arbitrum", nativeSymbol: "ETH", apiBase: EVM_API_BASE, chainId: 42161, apiKeyEnv: "ETHERSCAN_API_KEY", coingeckoId: "ethereum", avgBlockTimeMs: 500 },
+  { id: "base", label: "Base", nativeSymbol: "ETH", apiBase: EVM_API_BASE, chainId: 8453, apiKeyEnv: "ETHERSCAN_API_KEY", coingeckoId: "ethereum", avgBlockTimeMs: 2000 },
 ];
 
 const rpcChains = [
