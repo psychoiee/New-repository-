@@ -379,7 +379,16 @@
     });
   }
 
+  let statusTimer = null;
   function setStatus(status) {
+    if (statusTimer) { clearTimeout(statusTimer); statusTimer = null; }
+    if (status === "connecting" || status === "error") {
+      statusTimer = setTimeout(() => applyStatus(status), 700);
+    } else {
+      applyStatus(status);
+    }
+  }
+  function applyStatus(status) {
     const btn = document.getElementById("liveBtn");
     const label = document.getElementById("liveLabel");
     btn.className = "wt-live " + status + (paused ? " paused" : "");
