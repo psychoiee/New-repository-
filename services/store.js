@@ -1,21 +1,22 @@
 const fetch = require("node-fetch");
 
 // Persists the whale-transaction feed to Upstash Redis, using a SEPARATE
-// list per chain so that high-frequency chains (Bitcoin, Solana) cannot
-// push out the history of low-frequency chains (Tron, BSC, etc).
+// list per (chain, symbol) pair so that high-frequency assets (native
+// coins like TRX/BTC) cannot push out the history of lower-frequency
+// assets on the same chain (e.g. USDT on Tron).
 
-const MAX_PER_CHAIN = 150;
+const MAX_PER_KEY = 60;
 const KEY_PREFIX = "whale:feed:";
 
 const UPSTASH_URL = process.env.UPSTASH_REDIS_REST_URL;
 const UPSTASH_TOKEN = process.env.UPSTASH_REDIS_REST_TOKEN;
 
-let feedByChain = {};
+let feedByKey = {};
 const listeners = new Set();
 let loaded = false;
 
-function chainKey(chain) {
-  return KEY_PREFIX + chain;
+function keyFor(chain, symbol) {
+  return KEY_PREFIX + chain + ":" + symbol;
 }
 
 async function redisCommand(command) {
@@ -40,21 +41,29 @@ async function loadFromRedis() {
   loaded = true;
   try {
     const chains = require("../config/chains");
-    const allIds = [
+    const tokens = require("../config/tokens");
+    const allChains = [
       ...chains.evmChains.map((c) => c.id),
       ...chains.rpcChains.map((c) => c.id),
       ...chains.nonEvmChains.map((c) => c.id),
     ];
-    for (const id of allIds) {
-      const raw = await redisCommand(["LRANGE", chainKey(id), "0", String(MAX_PER_CHAIN - 1)]);
-      if (Array.isArray(raw)) {
-        feedByChain[id] = raw.map((s) => {
+    const chainSymbolPairs = [];
+    for (const chainCfg of [...chains.evmChains, ...chains.rpcChains, ...chains.nonEvmChains]) {
+      chainSymbolPairs.push([chainCfg.id, chainCfg.nativeSymbol]);
+      const chainTokens = tokens[chainCfg.id] || [];
+      for (const t of chainTokens) chainSymbolPairs.push([chainCfg.id, t.symbol]);
+    }
+    for (const [chain, symbol] of chainSymbolPairs) {
+      const k = keyFor(chain, symbol);
+      const raw = await redisCommand(["LRANGE", k, "0", String(MAX_PER_KEY - 1)]);
+      if (Array.isArray(raw) && raw.length) {
+        feedByKey[k] = raw.map((s) => {
           try { return JSON.parse(s); } catch (e) { return null; }
         }).filter(Boolean);
       }
     }
-    const total = Object.values(feedByChain).reduce((a, b) => a + b.length, 0);
-    console.log(`[store] restored ${total} transactions from Redis across ${allIds.length} chains`);
+    const total = Object.values(feedByKey).reduce((a, b) => a + b.length, 0);
+    console.log(`[store] restored ${total} transactions from Redis across ${chainSymbolPairs.length} chain/symbol keys`);
   } catch (e) {
     console.warn("[store] could not load from Redis:", e.message);
   }
@@ -62,14 +71,15 @@ async function loadFromRedis() {
 
 function addTransactions(txs) {
   if (!txs.length) return;
-  const byChain = {};
+  const byKey = {};
   for (const tx of txs) {
-    if (!byChain[tx.chain]) byChain[tx.chain] = [];
-    byChain[tx.chain].push(tx);
+    const k = keyFor(tx.chain, tx.symbol);
+    if (!byKey[k]) byKey[k] = [];
+    byKey[k].push(tx);
   }
-  for (const chain of Object.keys(byChain)) {
-    const existing = feedByChain[chain] || [];
-    feedByChain[chain] = [...byChain[chain], ...existing].slice(0, MAX_PER_CHAIN);
+  for (const k of Object.keys(byKey)) {
+    const existing = feedByKey[k] || [];
+    feedByKey[k] = [...byKey[k], ...existing].slice(0, MAX_PER_KEY);
   }
   for (const listener of listeners) {
     txs.forEach((tx) => listener(tx));
@@ -78,11 +88,11 @@ function addTransactions(txs) {
   // Fire-and-forget write to Redis - never blocks or breaks live tracking.
   (async () => {
     try {
-      for (const chain of Object.keys(byChain)) {
-        for (const tx of byChain[chain]) {
-          await redisCommand(["LPUSH", chainKey(chain), JSON.stringify(tx)]);
+      for (const k of Object.keys(byKey)) {
+        for (const tx of byKey[k]) {
+          await redisCommand(["LPUSH", k, JSON.stringify(tx)]);
         }
-        await redisCommand(["LTRIM", chainKey(chain), "0", String(MAX_PER_CHAIN - 1)]);
+        await redisCommand(["LTRIM", k, "0", String(MAX_PER_KEY - 1)]);
       }
     } catch (e) {
       console.warn("[store] could not save to Redis:", e.message);
@@ -93,10 +103,13 @@ function addTransactions(txs) {
 function getFeed({ chain, minUsd } = {}) {
   let all;
   if (chain && chain !== "ALL") {
-    all = feedByChain[chain] || [];
+    all = Object.entries(feedByKey)
+      .filter(([k]) => k.startsWith(KEY_PREFIX + chain + ":"))
+      .flatMap(([, v]) => v);
   } else {
-    all = Object.values(feedByChain).flat().sort((a, b) => b.timestamp - a.timestamp);
+    all = Object.values(feedByKey).flat();
   }
+  all.sort((a, b) => b.timestamp - a.timestamp);
   return all.filter((tx) => !minUsd || tx.usdValue >= minUsd);
 }
 
