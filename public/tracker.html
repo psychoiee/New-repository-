@@ -306,6 +306,11 @@
     if (chain === "bitcoin") return "https://www.blockchain.com/explorer/transactions/btc/" + hash;
     if (chain === "ethereum") return "https://etherscan.io/tx/" + hash;
     if (chain === "bsc") return "https://bscscan.com/tx/" + hash;
+    if (chain === "polygon") return "https://polygonscan.com/tx/" + hash;
+    if (chain === "arbitrum") return "https://arbiscan.io/tx/" + hash;
+    if (chain === "base") return "https://basescan.org/tx/" + hash;
+    if (chain === "solana") return "https://solscan.io/tx/" + hash;
+    if (chain === "tron") return "https://tronscan.org/#/transaction/" + hash;
     return null;
   }
 
