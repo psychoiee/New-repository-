@@ -2,7 +2,7 @@ const fetch = require("node-fetch");
 
 const ALL_IDS = [
   "bitcoin", "ethereum", "binancecoin", "solana",
-  "polygon-ecosystem-token", "tron", "lab",
+  "polygon-ecosystem-token", "tron", "tether",
 ];
 
 let cache = {}; // id -> price
@@ -18,6 +18,10 @@ async function refreshAll() {
   inFlight = (async () => {
     const url = `https://api.coingecko.com/api/v3/simple/price?ids=${ALL_IDS.join(",")}&vs_currencies=usd`;
     const res = await fetch(url);
+    if (!res.ok) {
+      const body = await res.text().catch(() => "");
+      throw new Error(`CoinGecko HTTP ${res.status}: ${body.slice(0, 200)}`);
+    }
     const data = await res.json();
     for (const id of ALL_IDS) {
       if (data[id] && typeof data[id].usd === "number") {
@@ -28,6 +32,9 @@ async function refreshAll() {
   })();
   try {
     await inFlight;
+  } catch (e) {
+    console.warn("[price] refreshAll failed:", e.message);
+    throw e;
   } finally {
     inFlight = null;
   }
