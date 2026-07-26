@@ -232,9 +232,14 @@
 
 <script>
   const COIN_META = {
-    BTC: { color: "#f7931a" }, ETH: { color: "#627eea" }, BNB: { color: "#f3ba2f" },
+    BTC: { color: "#f7931a", icon: "https://assets.coingecko.com/coins/images/1/small/bitcoin.png" },
+    ETH: { color: "#627eea", icon: "https://assets.coingecko.com/coins/images/279/small/ethereum.png" },
+    BNB: { color: "#f3ba2f", icon: "https://assets.coingecko.com/coins/images/825/small/bnb-icon2_2x.png" },
     LAB: { color: "#22e39a" }, ENA: { color: "#7c5cff" }, ANDREA: { color: "#ff6bd6" },
-    SOL: { color: "#9945ff" }, POL: { color: "#8247e5" }, ETH: { color: "#627eea" }, TRX: { color: "#ff0013" },
+    SOL: { color: "#9945ff", icon: "https://assets.coingecko.com/coins/images/4128/small/solana.png" },
+    POL: { color: "#8247e5", icon: "https://assets.coingecko.com/coins/images/32440/small/polygon.png" },
+    TRX: { color: "#ff0013", icon: "https://assets.coingecko.com/coins/images/1094/small/tron-logo.png" },
+    USDT: { color: "#26a17b", icon: "https://assets.coingecko.com/coins/images/325/small/Tether.png" },
   };
   const THRESHOLDS = [
     { label: "$100K+", value: 100000 }, { label: "$500K+", value: 500000 },
@@ -313,10 +318,17 @@
       el.onclick = () => { threshold = Number(el.dataset.th); onFilterChange(); };
     });
 
+    const FILTER_ICONS = {
+      Bitcoin: COIN_META.BTC.icon, Ethereum: COIN_META.ETH.icon, BSC: COIN_META.BNB.icon,
+      Solana: COIN_META.SOL.icon, Polygon: COIN_META.POL.icon, Tron: COIN_META.TRX.icon,
+      USDT: COIN_META.USDT.icon,
+    };
     const cEl = document.getElementById("chainChips");
-    cEl.innerHTML = CHAIN_FILTERS.map(c =>
-      `<div class="wt-chip ${(c.value.startsWith("COIN:") ? coinFilter === c.value.slice(5) : c.value === chainFilter) ? "active" : ""}" data-chain="${c.value}">${c.label}</div>`
-    ).join("");
+    cEl.innerHTML = CHAIN_FILTERS.map(c => {
+      const icon = FILTER_ICONS[c.label];
+      const iconHtml = icon ? `<img src="${icon}" style="width:14px;height:14px;border-radius:50%;vertical-align:-2px;margin-right:5px;">` : "";
+      return `<div class="wt-chip ${(c.value.startsWith("COIN:") ? coinFilter === c.value.slice(5) : c.value === chainFilter) ? "active" : ""}" data-chain="${c.value}">${iconHtml}${c.label}</div>`;
+    }).join("");
     cEl.querySelectorAll("[data-chain]").forEach(el => {
       el.onclick = () => {
         const v = el.dataset.chain;
@@ -351,7 +363,7 @@
           <div class="wt-time">${timeAgo(t.time)}</div>
           <div class="wt-addr">${shortAddr(t.from)}</div>
           <div class="wt-addr"><span class="wt-arrow">→</span> ${shortAddr(t.to)}</div>
-          <div class="wt-qty">${fmtQty(t.amount)}<span class="wt-coin-tag">${t.symbol}</span><span class="wt-chain-tag">${t.chain}</span></div>
+          <div class="wt-qty">${fmtQty(t.amount)}<span class="wt-coin-tag">${meta.icon ? `<img src="${meta.icon}" style="width:14px;height:14px;border-radius:50%;vertical-align:-2px;margin-right:4px;">` : ""}${t.symbol}</span><span class="wt-chain-tag">${t.chain}</span></div>
           <div class="wt-usd">${fmtUsd(t.usdValue)}</div>
         </div>`;
     }).join("");
