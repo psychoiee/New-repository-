@@ -8,8 +8,8 @@ const ALL_IDS = [
 let cache = {}; // id -> price
 let lastSuccessAt = 0;
 let lastAttemptAt = 0;
-const CACHE_MS = 5 * 60 * 1000;      // treat a price as "fresh enough" for 5 minutes
-const RETRY_COOLDOWN_MS = 60 * 1000; // never re-hit CoinGecko more than once a minute,
+const CACHE_MS = 10 * 60 * 1000;      // treat a price as "fresh enough" for 5 minutes
+const RETRY_COOLDOWN_MS = 5 * 60 * 1000; // never re-hit CoinGecko more than once a minute,
                                       // even if some ids are still missing from the cache
 let inFlight = null;
 
