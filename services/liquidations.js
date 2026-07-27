@@ -12,6 +12,7 @@ function connect() {
   try {
     ws = new WebSocket(BINANCE_LIQ_WS);
   } catch (e) {
+    console.warn("[liquidations] failed to create WebSocket:", e.message);
     scheduleReconnect();
     return;
   }
@@ -24,13 +25,16 @@ function connect() {
     try {
       const msg = JSON.parse(raw);
       const o = msg.o;
-      if (!o) return;
+      if (!o) {
+        console.log("[liquidations] unexpected message shape:", raw.toString().slice(0, 200));
+        return;
+      }
       const qty = parseFloat(o.q);
       const price = parseFloat(o.ap || o.p);
       const usdValue = qty * price;
       const liq = {
         symbol: o.s,
-        side: o.S, // "BUY" liquidation = short got liquidated, "SELL" = long got liquidated
+        side: o.S,
         qty,
         price,
         usdValue,
@@ -38,9 +42,10 @@ function connect() {
         timestamp: o.T || Date.now(),
       };
       feed = [liq, ...feed].slice(0, MAX_ITEMS);
+      console.log(`[liquidations] +1 ${liq.symbol} $${Math.round(liq.usdValue)}`);
       for (const listener of listeners) listener(liq);
     } catch (e) {
-      // ignore malformed messages
+      console.warn("[liquidations] failed to parse message:", e.message);
     }
   });
 
