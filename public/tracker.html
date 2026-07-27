@@ -236,6 +236,10 @@
       <div class="wt-stat-label">Threshold</div>
       <div class="wt-stat-value" id="statThreshold">$100K+</div>
     </div>
+    <div class="wt-stat">
+      <div class="wt-stat-label">ETH Gas (gwei)</div>
+      <div class="wt-stat-value" id="statGas">—</div>
+    </div>
   </div>
 
   <div class="wt-controls" id="thresholdChips"></div>
@@ -464,6 +468,18 @@
   }
 
   let lastMsgTime = Date.now();
+  function fetchGas() {
+    fetch(`${backendUrl}/api/gas`, { cache: "no-store" })
+      .then((r) => r.json())
+      .then((g) => {
+        if (g && typeof g.propose === "number") {
+          document.getElementById("statGas").textContent = Math.round(g.propose);
+        }
+      })
+      .catch(() => {});
+  }
+  fetchGas();
+  setInterval(fetchGas, 60000);
   setInterval(() => { loadInitial(); }, 60000);
   setInterval(() => { if (Date.now() - lastMsgTime > 90000) { connectSocket(); loadInitial(); } }, 20000);
   function connectSocket() {
