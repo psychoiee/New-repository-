@@ -7,6 +7,7 @@ const { WebSocketServer } = require("ws");
 const apiRoutes = require("./routes/api");
 const store = require("./services/store");
 const { startPolling } = require("./services/poller");
+const liquidations = require("./services/liquidations");
 
 const app = express();
 app.use(cors());
@@ -22,7 +23,10 @@ wss.on("connection", (socket) => {
   const unsubscribe = store.onNewTransaction((tx) => {
     socket.send(JSON.stringify({ type: "transaction", data: tx }));
   });
-  socket.on("close", unsubscribe);
+  const unsubscribeLiq = liquidations.onNewLiquidation((liq) => {
+    socket.send(JSON.stringify({ type: "liquidation", data: liq }));
+  });
+  socket.on("close", () => { unsubscribe(); unsubscribeLiq(); });
 });
 
 const PORT = process.env.PORT || 4000;
@@ -30,4 +34,5 @@ server.listen(PORT, async () => {
   console.log(`Whale tracker backend running on port ${PORT}`);
   await store.loadFromRedis();
   startPolling();
+  liquidations.start();
 });
