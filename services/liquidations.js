@@ -1,7 +1,7 @@
 const WebSocket = require("ws");
 
 // Free, no-API-key public stream of forced liquidations on Binance Futures.
-const BINANCE_LIQ_WS = "wss://fstream.binance.com/ws/!forceOrder@arr";
+const BINANCE_LIQ_WS = "wss://fstream.binance.com/ws/btcusdt@forceOrder";
 const MAX_ITEMS = 100;
 
 let feed = [];
