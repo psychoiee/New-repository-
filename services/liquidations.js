@@ -18,10 +18,14 @@ function connect() {
     return;
   }
 
+  let pingInterval = null;
   ws.on("open", () => {
     console.log("[liquidations] connected to Bybit, subscribing to liquidation topics");
     const args = SYMBOLS.map((s) => `allLiquidation.${s}`);
     ws.send(JSON.stringify({ op: "subscribe", args }));
+    pingInterval = setInterval(() => {
+      if (ws.readyState === ws.OPEN) ws.send(JSON.stringify({ op: "ping" }));
+    }, 20000);
   });
 
   ws.on("message", (raw) => {
@@ -55,6 +59,7 @@ function connect() {
   });
 
   ws.on("close", () => {
+    if (pingInterval) clearInterval(pingInterval);
     console.warn("[liquidations] connection closed, reconnecting in 5s");
     scheduleReconnect();
   });
