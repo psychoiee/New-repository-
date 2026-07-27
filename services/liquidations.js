@@ -1,8 +1,9 @@
 const WebSocket = require("ws");
 
-// Free, no-API-key public stream of forced liquidations on Binance Futures.
-const BINANCE_LIQ_WS = "wss://fstream.binance.com/ws/btcusdt@forceOrder";
+// Free, no-API-key public stream of forced liquidations on Bybit.
+const BYBIT_WS = "wss://stream.bybit.com/v5/public/linear";
 const MAX_ITEMS = 100;
+const SYMBOLS = ["BTCUSDT", "ETHUSDT", "SOLUSDT", "XRPUSDT", "BNBUSDT", "DOGEUSDT"];
 
 let feed = [];
 const listeners = new Set();
@@ -10,7 +11,7 @@ let ws = null;
 
 function connect() {
   try {
-    ws = new WebSocket(BINANCE_LIQ_WS);
+    ws = new WebSocket(BYBIT_WS);
   } catch (e) {
     console.warn("[liquidations] failed to create WebSocket:", e.message);
     scheduleReconnect();
@@ -18,28 +19,32 @@ function connect() {
   }
 
   ws.on("open", () => {
-    console.log("[liquidations] connected to Binance liquidation stream");
+    console.log("[liquidations] connected to Bybit, subscribing to liquidation topics");
+    const args = SYMBOLS.map((s) => `liquidation.${s}`);
+    ws.send(JSON.stringify({ op: "subscribe", args }));
   });
 
   ws.on("message", (raw) => {
     try {
       const msg = JSON.parse(raw);
-      const o = msg.o;
-      if (!o) {
-        console.log("[liquidations] unexpected message shape:", raw.toString().slice(0, 200));
+      if (msg.success !== undefined) {
+        console.log("[liquidations] subscribe response:", JSON.stringify(msg));
         return;
       }
-      const qty = parseFloat(o.q);
-      const price = parseFloat(o.ap || o.p);
+      if (!msg.topic || !msg.topic.startsWith("liquidation.") || !msg.data) return;
+      const d = Array.isArray(msg.data) ? msg.data[0] : msg.data;
+      if (!d) return;
+      const qty = parseFloat(d.size);
+      const price = parseFloat(d.price);
       const usdValue = qty * price;
       const liq = {
-        symbol: o.s,
-        side: o.S,
+        symbol: d.symbol,
+        side: d.side,
         qty,
         price,
         usdValue,
-        exchange: "Binance",
-        timestamp: o.T || Date.now(),
+        exchange: "Bybit",
+        timestamp: Number(d.updatedTime) || Date.now(),
       };
       feed = [liq, ...feed].slice(0, MAX_ITEMS);
       console.log(`[liquidations] +1 ${liq.symbol} $${Math.round(liq.usdValue)}`);
