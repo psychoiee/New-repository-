@@ -74,8 +74,16 @@ function scheduleReconnect() {
 }
 
 function start() {
-  connect();
+  try {
+    connect();
+  } catch (e) {
+    console.warn("[liquidations] start() failed:", e.message);
+  }
 }
+
+process.on("unhandledRejection", (e) => {
+  console.warn("[liquidations] unhandled rejection (ignored):", e && e.message);
+});
 
 function getFeed({ minUsd } = {}) {
   return feed.filter((l) => !minUsd || l.usdValue >= minUsd);
