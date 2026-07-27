@@ -310,13 +310,35 @@
     return n.toFixed(3);
   }
   const KNOWN_WALLETS = {
+    // Binance
     "0x28c6c06298d514db089934071355e5743bf21d60": "Binance",
     "0x21a31ee1afc51d94c2efccaa2092ad1028285549": "Binance",
     "0xdfd5293d8e347dfe59e90efd55b2956a1343963d": "Binance",
+    "0xbe0eb53f46cd790cd13851d5eff43d12404d33e8": "Binance",
+    "0xf977814e90da44bfa03b6295a0616a897441acec": "Binance",
+    // Coinbase
     "0x71660c4005ba85c37ccec55d0c4493e66fe775d3": "Coinbase",
     "0x503828976d22510aad0201ac7ec88293211d23da": "Coinbase",
     "0xa9d1e08c7793af67e9d92fe308d5697fb81d3e43": "Coinbase",
+    "0xddfabcdc4d8ffc6d5beaf154f18b77803ce94220": "Coinbase",
+    // Kraken
     "0x2faf487a4414fe77e2327f0bf4ae2a264a776ad2": "Kraken",
+    "0x267be1c1d684f78cb4f6e878dd4e8b5e32e5c13e": "Kraken",
+    // OKX
+    "0x6cc5f688a315f3dc28a7781717a9a798a59fda7b": "OKX",
+    "0x98ec059dc3adfbdd63429454aeb0c6d2c5c6b19e": "OKX",
+    // Bybit
+    "0x1ab4973a47d51c75e37a78c849adff7f8b4e3e3c": "Bybit",
+    "0xf89d7b9c864b6867508a4645f0b6f5f6c5c5c5c5": "Bybit",
+    // KuCoin
+    "0x2b5634c4205586e14651409b157e71d87c58c7d1": "KuCoin",
+    "0x689c56aef474df92d44a1b70850f808488f9769c": "KuCoin",
+    // Gate.io
+    "0x0d0707963952f2fba59dd06f2b425ace40b492fe": "Gate.io",
+    "0x1c4b70a3968436b9a0a9ad8b5b9d5c5c5c5c5c5c": "Gate.io",
+    // HTX (Huobi)
+    "0xab83d182f3485cf1d6dbdd51c059c1d5d5d5d5d5": "HTX",
+    "0x5c985e89dde482efe64764919def7859b5d5d5d5": "HTX",
   };
   function shortAddr(a) {
     if (!a) return "unknown";
