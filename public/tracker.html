@@ -164,7 +164,7 @@
   }
 
   .wt-time { color: #6b8280; font-size: 12px; }
-  .wt-addr { color: #c3d4d2; font-size: 12.5px; display: flex; align-items: center; gap: 6px; }
+  .wt-addr {
   .wt-copy-btn {
     background: none;
     border: none;
@@ -183,6 +183,7 @@
   .wt-copy-btn.copied {
     color: #22e39a;
   }
+ color: #c3d4d2; font-size: 12.5px; display: flex; align-items: center; gap: 6px; }
   .wt-qty { color: #d7e2e3; font-weight: 500; }
   .wt-coin-tag { font-size: 10.5px; color: #8a9c9a; margin-left: 6px; }
   .wt-chain-tag { font-size: 9.5px; text-transform: uppercase; letter-spacing: 0.05em; color: #6b8280; margin-left: 6px; }
@@ -397,8 +398,8 @@
         <div class="wt-row" style="cursor:pointer" data-url="${url || ''}">
           ${whaleSvg(meta.color, i === 0 && !paused)}
           <div class="wt-time">${timeAgo(t.time)}</div>
-          <div class="wt-addr">${shortAddr(t.from)}</div>
-          <div class="wt-addr"><span class="wt-arrow">→</span> ${shortAddr(t.to)}</div>
+          <div class="wt-addr">${shortAddr(t.from)} <button class="wt-copy-btn" onclick="event.stopPropagation(); copyAddr('${t.from}', this)" title="Copy">📋</button></div>
+          <div class="wt-addr"><span class="wt-arrow">→</span> ${shortAddr(t.to)} <button class="wt-copy-btn" onclick="event.stopPropagation(); copyAddr('${t.to}', this)" title="Copy">📋</button></div>
           <div class="wt-qty">${fmtQty(t.amount)}<span class="wt-coin-tag">${meta.icon ? `<img src="${meta.icon}" style="width:14px;height:14px;border-radius:50%;vertical-align:-2px;margin-right:4px;">` : ""}${t.symbol}</span><span class="wt-chain-tag">${t.chain}</span></div>
           <div class="wt-usd">${fmtUsd(t.usdValue)}</div>
         </div>`;
