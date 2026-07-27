@@ -20,7 +20,7 @@ function connect() {
 
   ws.on("open", () => {
     console.log("[liquidations] connected to Bybit, subscribing to liquidation topics");
-    const args = SYMBOLS.map((s) => `liquidation.${s}`);
+    const args = SYMBOLS.map((s) => `allLiquidation.${s}`);
     ws.send(JSON.stringify({ op: "subscribe", args }));
   });
 
@@ -31,7 +31,7 @@ function connect() {
         console.log("[liquidations] subscribe response:", JSON.stringify(msg));
         return;
       }
-      if (!msg.topic || !msg.topic.startsWith("liquidation.") || !msg.data) return;
+      if (!msg.topic || !msg.topic.startsWith("allLiquidation.") || !msg.data) return;
       const d = Array.isArray(msg.data) ? msg.data[0] : msg.data;
       if (!d) return;
       const qty = parseFloat(d.size);
