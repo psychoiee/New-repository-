@@ -1,6 +1,7 @@
 const express = require("express");
 const store = require("../services/store");
 const liquidations = require("../services/liquidations");
+const gasTracker = require("../services/gasTracker");
 const { evmChains, rpcChains, nonEvmChains } = require("../config/chains");
 
 const router = express.Router();
@@ -19,6 +20,10 @@ router.get("/transactions", (req, res) => {
 router.get("/liquidations", (req, res) => {
   const minUsd = req.query.minUsd ? Number(req.query.minUsd) : undefined;
   res.json(liquidations.getFeed({ minUsd }));
+});
+
+router.get("/gas", (req, res) => {
+  res.json(gasTracker.getGas() || {});
 });
 
 module.exports = router;
