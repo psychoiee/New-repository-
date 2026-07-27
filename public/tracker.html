@@ -165,6 +165,24 @@
 
   .wt-time { color: #6b8280; font-size: 12px; }
   .wt-addr { color: #c3d4d2; font-size: 12.5px; display: flex; align-items: center; gap: 6px; }
+  .wt-copy-btn {
+    background: none;
+    border: none;
+    color: #6b8280;
+    cursor: pointer;
+    padding: 2px 4px;
+    font-size: 12px;
+    border-radius: 4px;
+    transition: all 0.15s ease;
+    line-height: 1;
+  }
+  .wt-copy-btn:hover {
+    color: #22e39a;
+    background: rgba(34,227,154,0.1);
+  }
+  .wt-copy-btn.copied {
+    color: #22e39a;
+  }
   .wt-qty { color: #d7e2e3; font-weight: 500; }
   .wt-coin-tag { font-size: 10.5px; color: #8a9c9a; margin-left: 6px; }
   .wt-chain-tag { font-size: 9.5px; text-transform: uppercase; letter-spacing: 0.05em; color: #6b8280; margin-left: 6px; }
@@ -472,6 +490,21 @@
   renderChips();
   loadInitial();
   connectSocket();
+  
+  function copyAddr(addr, btn) {
+    navigator.clipboard.writeText(addr).then(() => {
+      const old = btn.innerHTML;
+      btn.innerHTML = "✓";
+      btn.classList.add("copied");
+      setTimeout(() => {
+        btn.innerHTML = old;
+        btn.classList.remove("copied");
+      }, 1200);
+    }).catch(() => {
+      alert("Copy failed");
+    });
+  }
+
   setInterval(render, 1000); // keep "time ago" labels fresh
 </script>
 </body>
