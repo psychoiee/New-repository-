@@ -41,6 +41,10 @@ server.listen(PORT, async () => {
   gasTracker.start();
   marketMovers.start();
   stablecoinMints.start();
+  setInterval(() => {
+    const m = process.memoryUsage();
+    console.log(`[memory] rss=${Math.round(m.rss/1024/1024)}MB heapUsed=${Math.round(m.heapUsed/1024/1024)}MB heapTotal=${Math.round(m.heapTotal/1024/1024)}MB`);
+  }, 60000);
 });
 // restart Mon Jul 27 18:13:09 PKT 2026
 // force restart Mon Jul 27 19:29:10 PKT 2026
