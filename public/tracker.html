@@ -254,6 +254,10 @@
       <div class="wt-stat-label" style="margin-bottom:6px;">TOP LOSERS (24H)</div>
       <div id="losersList"></div>
     </div>
+    <div style="flex:1; min-width:220px;">
+      <div class="wt-stat-label" style="margin-bottom:6px;">USDT MINT/BURN (ETH)</div>
+      <div id="mintsList"></div>
+    </div>
   </div>
 
   <div class="wt-table-wrap">
@@ -510,6 +514,25 @@
   }
   fetchMovers();
   setInterval(fetchMovers, 60000);
+  function renderMintRow(m) {
+    const color = m.type === "mint" ? "#22e39a" : "#ff6b6b";
+    const label = m.type === "mint" ? "Mint" : "Burn";
+    return `<div style="display:flex; justify-content:space-between; padding:6px 0; font-size:13px; border-bottom:1px solid #1c3a33;">
+      <span style="color:${color};">${label}</span>
+      <span>${Math.round(m.amount).toLocaleString()} USDT</span>
+    </div>`;
+  }
+  function fetchMints() {
+    fetch(`${backendUrl}/api/mints`, { cache: "no-store" })
+      .then((r) => r.json())
+      .then((list) => {
+        const el = document.getElementById("mintsList");
+        el.innerHTML = list.length ? list.map(renderMintRow).join("") : `<div style="font-size:12px; color:#4d6b64;">No recent activity</div>`;
+      })
+      .catch(() => {});
+  }
+  fetchMints();
+  setInterval(fetchMints, 60000);
   setInterval(() => { loadInitial(); }, 60000);
   setInterval(() => { if (Date.now() - lastMsgTime > 90000) { connectSocket(); loadInitial(); } }, 20000);
   function connectSocket() {
