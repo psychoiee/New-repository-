@@ -10,6 +10,7 @@ const { startPolling } = require("./services/poller");
 const liquidations = require("./services/liquidations");
 const gasTracker = require("./services/gasTracker");
 const marketMovers = require("./services/marketMovers");
+const stablecoinMints = require("./services/stablecoinMints");
 
 const app = express();
 app.use(cors());
@@ -39,6 +40,7 @@ server.listen(PORT, async () => {
   // liquidations.start(); // temporarily disabled to test server stability
   gasTracker.start();
   marketMovers.start();
+  stablecoinMints.start();
 });
 // restart Mon Jul 27 18:13:09 PKT 2026
 // force restart Mon Jul 27 19:29:10 PKT 2026
