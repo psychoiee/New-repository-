@@ -255,6 +255,10 @@
       <div class="wt-stat-label" style="margin-bottom:6px; color:#22e39a;">USDT MINT/BURN (ETH)</div>
       <div id="mintsList"></div>
     </div>
+    <div style="flex:1; min-width:220px;">
+      <div class="wt-stat-label" style="margin-bottom:6px; color:#ff0013;">USDT MINT/BURN (TRON)</div>
+      <div id="tronMintsList"></div>
+    </div>
   </div>
 
   <div class="wt-controls" id="thresholdChips"></div>
@@ -533,8 +537,21 @@
       })
       .catch(() => {});
   }
+  function fetchTronMints() {
+    fetch(`${backendUrl}/api/mints/tron`, { cache: "no-store" })
+      .then(r => r.json())
+      .then(list => {
+        const el = document.getElementById("tronMintsList");
+        if (!el) return;
+        el.innerHTML = list.length ? list.map(renderMintRow).join("") : `<div style="font-size:12px; color:#ff0013; text-align:center; padding:10px; border:1px dashed #ff001355; border-radius:8px;">Watching for Tron mint/burn activity...</div>`;
+      })
+      .catch(() => {});
+  }
+
   fetchMints();
+  fetchTronMints();
   setInterval(fetchMints, 60000);
+  setInterval(fetchTronMints, 60000);
   setInterval(() => { loadInitial(); }, 60000);
   setInterval(() => { if (Date.now() - lastMsgTime > 90000) { connectSocket(); loadInitial(); } }, 20000);
   function connectSocket() {
