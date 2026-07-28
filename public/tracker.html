@@ -499,11 +499,16 @@
   }
   fetchGas();
   setInterval(fetchGas, 60000);
+  function fmtMoverPrice(p) {
+    if (p >= 1) return "$" + p.toFixed(2);
+    return "$" + p.toFixed(6).replace(/0+$/, "").replace(/\.$/, "");
+  }
   function renderMoverRow(m) {
     const color = m.change >= 0 ? "#22e39a" : "#ff6b6b";
     const sign = m.change >= 0 ? "+" : "";
-    return `<div style="display:flex; justify-content:space-between; padding:6px 0; font-size:13px; border-bottom:1px solid #1c3a33;">
+    return `<div style="display:flex; justify-content:space-between; align-items:center; padding:6px 0; font-size:13px; border-bottom:1px solid #1c3a33;">
       <span>${m.symbol}</span>
+      <span style="color:#8a9c9a; font-size:11px;">${fmtMoverPrice(m.price)}</span>
       <span style="color:${color};">${sign}${m.change.toFixed(2)}%</span>
     </div>`;
   }
