@@ -4,6 +4,7 @@ const liquidations = require("../services/liquidations");
 const gasTracker = require("../services/gasTracker");
 const marketMovers = require("../services/marketMovers");
 const stablecoinMints = require("../services/stablecoinMints");
+const tronMints = require("../services/tronMints");
 const { evmChains, rpcChains, nonEvmChains } = require("../config/chains");
 
 const router = express.Router();
@@ -34,6 +35,10 @@ router.get("/movers", (req, res) => {
 
 router.get("/mints", (req, res) => {
   res.json(stablecoinMints.getFeed());
+});
+
+router.get("/mints/tron", (req, res) => {
+  res.json(tronMints.getFeed());
 });
 
 module.exports = router;

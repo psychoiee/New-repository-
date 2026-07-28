@@ -11,6 +11,7 @@ const liquidations = require("./services/liquidations");
 const gasTracker = require("./services/gasTracker");
 const marketMovers = require("./services/marketMovers");
 const stablecoinMints = require("./services/stablecoinMints");
+const tronMints = require("./services/tronMints");
 
 const app = express();
 app.use(cors());
@@ -41,6 +42,7 @@ server.listen(PORT, async () => {
   gasTracker.start();
   marketMovers.start();
   stablecoinMints.start();
+  tronMints.start();
   setInterval(() => {
     const m = process.memoryUsage();
     console.log(`[memory] rss=${Math.round(m.rss/1024/1024)}MB heapUsed=${Math.round(m.heapUsed/1024/1024)}MB heapTotal=${Math.round(m.heapTotal/1024/1024)}MB`);
