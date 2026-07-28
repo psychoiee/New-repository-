@@ -1,6 +1,6 @@
 const fetch = require("node-fetch");
 
-const REFRESH_MS = 5 * 60 * 1000; // refresh every 5 minutes (avoid CoinGecko rate limits)
+const REFRESH_MS = 20 * 60 * 1000; // refresh every 5 minutes (avoid CoinGecko rate limits)
 const URL = "https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=100&page=1&price_change_percentage=24h";
 
 let cache = { gainers: [], losers: [] };
