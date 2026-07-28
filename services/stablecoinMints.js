@@ -30,7 +30,7 @@ async function refresh() {
     const blockRes = await fetch(blockUrl.toString(), { signal: controller.signal });
     const blockData = await blockRes.json();
     const latestBlock = parseInt(blockData.result, 16);
-    if (lastBlock === null) lastBlock = latestBlock - 100; // first run: look back ~100 blocks
+    if (lastBlock === null) lastBlock = latestBlock - 5; // first run: look back ~100 blocks
     const fromBlock = lastBlock + 1;
 
     if (fromBlock > latestBlock) {
