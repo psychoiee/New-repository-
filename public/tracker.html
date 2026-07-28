@@ -473,7 +473,7 @@
       .then((r) => r.json())
       .then((g) => {
         if (g && typeof g.propose === "number") {
-          document.getElementById("statGas").textContent = Math.round(g.propose);
+          document.getElementById("statGas").textContent = g.propose < 1 ? g.propose.toFixed(2) : Math.round(g.propose);
         }
       })
       .catch(() => {});
