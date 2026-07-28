@@ -506,9 +506,9 @@
   function renderMoverRow(m) {
     const color = m.change >= 0 ? "#22e39a" : "#ff6b6b";
     const sign = m.change >= 0 ? "+" : "";
-    const iconUrl = `https://cdn.jsdelivr.net/gh/spothq/cryptocurrency-icons@master/32/color/${m.symbol.toLowerCase()}.png`;
+    const iconUrl = `https://bin.bnbstatic.com/static/assets/logos/${m.symbol.toUpperCase()}.png`;
     return `<div style="display:flex; justify-content:space-between; align-items:center; padding:6px 0; font-size:13px; border-bottom:1px solid #1c3a33;">
-      <span style="display:flex; align-items:center; gap:6px;"><img src="${iconUrl}" style="width:16px;height:16px;border-radius:50%;" onerror="this.style.display='none'">${m.symbol}</span>
+      <span style="display:flex; align-items:center; gap:6px;">${m.symbol}<img src="${iconUrl}" style="width:16px;height:16px;border-radius:50%;" onerror="this.style.display='none'"></span>
       <span style="color:#8a9c9a; font-size:11px;">${fmtMoverPrice(m.price)}</span>
       <span style="color:${color};">${sign}${m.change.toFixed(2)}%</span>
     </div>`;
