@@ -1,7 +1,7 @@
 const fetch = require("node-fetch");
 
-const REFRESH_MS = 20 * 60 * 1000; // refresh every 5 minutes (avoid CoinGecko rate limits)
-const URL = "https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=100&page=1&price_change_percentage=24h";
+const REFRESH_MS = 10 * 60 * 1000; // refresh every 10 minutes
+const URL = "https://api.binance.com/api/v3/ticker/24hr";
 
 let cache = { gainers: [], losers: [] };
 
@@ -17,23 +17,21 @@ async function refresh() {
       console.log("[marketMovers] unexpected response:", JSON.stringify(data).slice(0, 200));
       return;
     }
-    const withChange = data.filter((c) => typeof c.price_change_percentage_24h === "number");
-    const sorted = [...withChange].sort((a, b) => b.price_change_percentage_24h - a.price_change_percentage_24h);
+    // Only USDT pairs, with meaningful volume, to avoid obscure/illiquid symbols
+    const usdtPairs = data.filter(
+      (t) => t.symbol.endsWith("USDT") && parseFloat(t.quoteVolume) > 5_000_000
+    );
+    const sorted = [...usdtPairs].sort(
+      (a, b) => parseFloat(b.priceChangePercent) - parseFloat(a.priceChangePercent)
+    );
+    const toEntry = (t) => ({
+      symbol: t.symbol.replace("USDT", ""),
+      price: parseFloat(t.lastPrice),
+      change: parseFloat(t.priceChangePercent),
+    });
     cache = {
-      gainers: sorted.slice(0, 5).map((c) => ({
-        symbol: c.symbol.toUpperCase(),
-        name: c.name,
-        price: c.current_price,
-        change: c.price_change_percentage_24h,
-        icon: c.image,
-      })),
-      losers: sorted.slice(-5).reverse().map((c) => ({
-        symbol: c.symbol.toUpperCase(),
-        name: c.name,
-        price: c.current_price,
-        change: c.price_change_percentage_24h,
-        icon: c.image,
-      })),
+      gainers: sorted.slice(0, 5).map(toEntry),
+      losers: sorted.slice(-5).reverse().map(toEntry),
     };
     console.log("[marketMovers] updated, top gainer:", cache.gainers[0] && cache.gainers[0].symbol);
   } catch (e) {
@@ -43,7 +41,7 @@ async function refresh() {
 
 function start() {
   console.log("[marketMovers] start() called");
-  setTimeout(refresh, 5000);
+  setTimeout(refresh, 15000);
   setInterval(refresh, REFRESH_MS);
 }
 
