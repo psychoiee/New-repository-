@@ -9,6 +9,7 @@ const store = require("./services/store");
 const { startPolling } = require("./services/poller");
 const liquidations = require("./services/liquidations");
 const gasTracker = require("./services/gasTracker");
+const marketMovers = require("./services/marketMovers");
 
 const app = express();
 app.use(cors());
@@ -37,6 +38,7 @@ server.listen(PORT, async () => {
   startPolling();
   // liquidations.start(); // temporarily disabled to test server stability
   gasTracker.start();
+  marketMovers.start();
 });
 // restart Mon Jul 27 18:13:09 PKT 2026
 // force restart Mon Jul 27 19:29:10 PKT 2026
