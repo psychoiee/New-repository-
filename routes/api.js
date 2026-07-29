@@ -14,6 +14,10 @@ router.get("/chains", (req, res) => {
   res.json(all);
 });
 
+router.get("/biggest-today", (req, res) => {
+  res.json(store.getBiggestToday() || {});
+});
+
 router.get("/transactions", (req, res) => {
   const chain = req.query.chain || "ALL";
   const minUsd = req.query.minUsd ? Number(req.query.minUsd) : undefined;

@@ -69,8 +69,32 @@ async function loadFromRedis() {
   }
 }
 
+let biggestToday = null;
+let biggestDay = null;
+
+function todayKey() {
+  return new Date().toISOString().slice(0, 10);
+}
+
+function updateBiggest(tx) {
+  const day = todayKey();
+  if (biggestDay !== day) {
+    biggestDay = day;
+    biggestToday = null;
+  }
+  if (!biggestToday || tx.usdValue > biggestToday.usdValue) {
+    biggestToday = tx;
+  }
+}
+
+function getBiggestToday() {
+  if (biggestDay !== todayKey()) return null;
+  return biggestToday;
+}
+
 function addTransactions(txs) {
   if (!txs.length) return;
+  for (const tx of txs) updateBiggest(tx);
   const byKey = {};
   for (const tx of txs) {
     const k = keyFor(tx.chain, tx.symbol);
@@ -118,4 +142,4 @@ function onNewTransaction(cb) {
   return () => listeners.delete(cb);
 }
 
-module.exports = { addTransactions, getFeed, onNewTransaction, loadFromRedis };
+module.exports = { addTransactions, getFeed, onNewTransaction, loadFromRedis, getBiggestToday };
