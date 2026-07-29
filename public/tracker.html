@@ -242,6 +242,13 @@
     </div>
   </div>
 
+  <div class="wt-controls" id="biggestTodayWrap" style="display:none; margin-bottom:16px;">
+    <div class="wt-stat" style="width:100%;">
+      <div class="wt-stat-label">Biggest Whale Transaction Today</div>
+      <div id="biggestTodayContent" style="font-size:13px; margin-top:8px;"></div>
+    </div>
+  </div>
+
   <div class="wt-controls" style="display:flex; gap:16px; flex-wrap:wrap; margin-bottom:16px;">
     <div style="flex:1; min-width:220px;">
       <div class="wt-stat-label" style="margin-bottom:6px;">TOP GAINERS (24H)</div>
@@ -499,6 +506,21 @@
   }
   fetchGas();
   setInterval(fetchGas, 60000);
+  function fetchBiggestToday() {
+    fetch(`${backendUrl}/api/biggest-today`, { cache: "no-store" })
+      .then((r) => r.json())
+      .then((tx) => {
+        const wrap = document.getElementById("biggestTodayWrap");
+        if (!tx || !tx.hash) { wrap.style.display = "none"; return; }
+        wrap.style.display = "block";
+        const usd = fmtUsd(tx.usdValue);
+        document.getElementById("biggestTodayContent").innerHTML =
+          `<span style="color:#22e39a; font-weight:bold;">${usd}</span> — ${tx.symbol} on ${tx.chain} (${shortAddr(tx.from)} → ${shortAddr(tx.to)})`;
+      })
+      .catch(() => {});
+  }
+  fetchBiggestToday();
+  setInterval(fetchBiggestToday, 60000);
   function fmtMoverPrice(p) {
     if (p >= 1) return "$" + p.toFixed(2);
     return "$" + p.toFixed(6).replace(/0+$/, "").replace(/\.$/, "");
