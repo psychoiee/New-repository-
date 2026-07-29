@@ -19,7 +19,7 @@ async function loadSymbolMap() {
   try {
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), 10000);
-    const res = await fetch(`${CMC_MAP_URL}?limit=2000`, {
+    const res = await fetch(`${CMC_MAP_URL}?limit=5000`, {
       headers: { "X-CMC_PRO_API_KEY": apiKey },
       signal: controller.signal,
     });
@@ -29,9 +29,10 @@ async function loadSymbolMap() {
       console.log("[marketMovers] unexpected CMC map response:", JSON.stringify(data).slice(0, 200));
       return;
     }
+    const sorted = [...data.data].sort((a, b) => (a.rank || 99999) - (b.rank || 99999));
     const map = {};
-    for (const c of data.data) {
-      if (!map[c.symbol]) map[c.symbol] = c.id; // keep first (highest rank) match
+    for (const c of sorted) {
+      if (!map[c.symbol]) map[c.symbol] = c.id; // keep the most prominent (lowest rank) match
     }
     symbolToId = map;
     mapLoadedAt = Date.now();
