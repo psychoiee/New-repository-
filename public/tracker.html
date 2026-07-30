@@ -558,6 +558,14 @@
   }
   fetchMovers();
   setInterval(fetchMovers, 60000);
+  document.addEventListener("visibilitychange", () => {
+    if (document.visibilityState === "visible") {
+      fetchMovers();
+      fetchGas();
+      fetchBiggestToday();
+      loadInitial();
+    }
+  });
   function renderMintRow(m) {
     const isMint = m.type === "mint";
     const color = isMint ? "#22e39a" : "#ff6b6b";
