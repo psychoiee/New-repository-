@@ -514,8 +514,20 @@
         if (!tx || !tx.hash) { wrap.style.display = "none"; return; }
         wrap.style.display = "block";
         const usd = fmtUsd(tx.usdValue);
-        document.getElementById("biggestTodayContent").innerHTML =
-          `<span style="color:#22e39a; font-weight:bold;">${usd}</span> — ${tx.symbol} on ${tx.chain} (${shortAddr(tx.from)} → ${shortAddr(tx.to)})`;
+        const link = explorerUrl(tx.chain, tx.hash);
+        const inner = `<span style="color:#22e39a; font-weight:bold; font-size:16px;">${usd}</span>
+          <span style="color:#8a9c9a;">${tx.symbol} on ${tx.chain}</span><br>
+          <span style="color:#c3d4d2;">${shortAddr(tx.from)} <span style="color:#22e39a;">→</span> ${shortAddr(tx.to)}</span>`;
+        const box = document.getElementById("biggestTodayContent");
+        box.style.padding = "10px";
+        box.style.borderRadius = "8px";
+        box.style.border = "1px solid #22e39a55";
+        box.style.background = "#22e39a11";
+        if (link) {
+          box.innerHTML = `<a href="${link}" target="_blank" style="text-decoration:none; display:block;">${inner}</a>`;
+        } else {
+          box.innerHTML = inner;
+        }
       })
       .catch(() => {});
   }
