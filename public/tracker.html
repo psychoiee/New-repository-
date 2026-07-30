@@ -504,7 +504,7 @@
       })
       .catch(() => {});
   }
-  fetchGas();
+  setTimeout(fetchGas, 1500);
   setInterval(fetchGas, 60000);
   function fetchBiggestToday() {
     fetch(`${backendUrl}/api/biggest-today`, { cache: "no-store" })
@@ -531,7 +531,7 @@
       })
       .catch(() => {});
   }
-  fetchBiggestToday();
+  setTimeout(fetchBiggestToday, 1500);
   setInterval(fetchBiggestToday, 60000);
   function fmtMoverPrice(p) {
     if (p >= 1) return "$" + p.toFixed(2);
@@ -556,7 +556,7 @@
       })
       .catch(() => {});
   }
-  fetchMovers();
+  setTimeout(fetchMovers, 1500);
   setInterval(fetchMovers, 60000);
   document.addEventListener("visibilitychange", () => {
     if (document.visibilityState === "visible") {
