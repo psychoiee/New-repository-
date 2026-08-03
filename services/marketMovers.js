@@ -19,7 +19,7 @@ async function loadSymbolMap() {
   try {
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), 10000);
-    const res = await fetch(`${CMC_MAP_URL}?limit=5000`, {
+    const res = await fetch(`${CMC_MAP_URL}?sort=cmc_rank&limit=5000`, {
       headers: { "X-CMC_PRO_API_KEY": apiKey },
       signal: controller.signal,
     });
