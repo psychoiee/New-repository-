@@ -10,6 +10,15 @@ const UPSTASH_URL = process.env.UPSTASH_REDIS_REST_URL;
 const UPSTASH_TOKEN = process.env.UPSTASH_REDIS_REST_TOKEN;
 
 let feed = [];
+
+// Seed the known $1B mint from Aug 10 2026 so it shows immediately
+const SEED_MINT = {
+  type: "mint",
+  amount: 1000000000,
+  hash: "dab215a82d0c6e98b89ffadc0b0bd1c5b1b328174ba23208633745b02e4d3129",
+  timestamp: 1754806899000  // approx Aug 10 2026 07:41 UTC
+};
+
 let seenSince = null;
 let loaded = false;
 
@@ -150,6 +159,12 @@ async function refresh() {
 async function start() {
   console.log("[tronMints] start() called");
   await loadFromRedis();
+  // Ensure the known big mint is always present
+  if (typeof SEED_MINT !== "undefined" && !feed.some(f => f.hash === SEED_MINT.hash)) {
+    feed = [SEED_MINT, ...feed].slice(0, MAX_ITEMS);
+    console.log("[tronMints] seeded $1B mint from Aug 10");
+    await saveToRedis();
+  }
   setTimeout(refresh, 20000);
   setInterval(refresh, REFRESH_MS);
 }
