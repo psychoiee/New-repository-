@@ -61,6 +61,22 @@ async function saveToRedis() {
   }
 }
 
+async function fetchEvents(eventName, since, now, apiKey) {
+  const url = `https://api.trongrid.io/v1/contracts/\( {USDT_CONTRACT}/events?event_name= \){eventName}&min_timestamp=\( {since}&max_timestamp= \){now}&limit=200&order_by=block_timestamp,asc`;
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 15000);
+  try {
+    const res = await fetch(url, { headers: { "TRON-PRO-API-KEY": apiKey }, signal: controller.signal });
+    clearTimeout(timeout);
+    const data = await res.json();
+    return Array.isArray(data.data) ? data.data : [];
+  } catch (e) {
+    clearTimeout(timeout);
+    console.warn(`[tronMints] ${eventName} fetch failed:`, e.message);
+    return [];
+  }
+}
+
 async function refresh() {
   console.log("[tronMints] refresh() called");
   try {
@@ -70,43 +86,62 @@ async function refresh() {
       return;
     }
     const now = Date.now();
-    // First run: look back 7 days
-    const since = seenSince || (now - 7 * 24 * 60 * 60 * 1000);
-    const url = `https://api.trongrid.io/v1/contracts/\( {USDT_CONTRACT}/events?event_name=Transfer&min_timestamp= \){since}&max_timestamp=${now}&limit=200&order_by=block_timestamp,asc`;
-    const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 15000);
-    const res = await fetch(url, { headers: { "TRON-PRO-API-KEY": apiKey }, signal: controller.signal });
-    clearTimeout(timeout);
-    const data = await res.json();
-    if (!Array.isArray(data.data)) {
-      console.log("[tronMints] unexpected response:", JSON.stringify(data).slice(0, 200));
-      seenSince = now;
-      return;
-    }
+    // First run or after long gap: look back 10 days to catch recent big mints
+    const since = seenSince || (now - 10 * 24 * 60 * 60 * 1000);
+
+    const [transfers, issues] = await Promise.all([
+      fetchEvents("Transfer", since, now, apiKey),
+      fetchEvents("Issue", since, now, apiKey),
+    ]);
+
     let added = 0;
-    for (const ev of data.data) {
-      const r = ev.result;
-      if (!r) continue;
-      const from = (r.from || "").toLowerCase();
-      const to = (r.to || "").toLowerCase();
-      const isMint = from === NULL_ADDRESS_HEX;
-      const isBurn = to === NULL_ADDRESS_HEX;
+
+    // Handle Transfer events (from zero = mint, to zero = burn)
+    for (const ev of transfers) {
+      const r = ev.result || {};
+      const from = (r.from || "").toLowerCase().replace(/^0x/, "");
+      const to = (r.to || "").toLowerCase().replace(/^0x/, "");
+      const isMint = from === NULL_ADDRESS_HEX || from === "" || from === "0";
+      const isBurn = to === NULL_ADDRESS_HEX || to === "" || to === "0";
       if (!isMint && !isBurn) continue;
-      const amount = Number(r.value) / 1e6;
+      const amount = Number(r.value || r.amount || 0) / 1e6;
       if (amount < 1000) continue;
       const entry = {
         type: isMint ? "mint" : "burn",
         amount,
-        hash: ev.transaction_id,
+        hash: ev.transaction_id || ev.transaction,
         timestamp: ev.block_timestamp || Date.now(),
       };
       if (feed.some(f => f.hash === entry.hash)) continue;
       feed = [entry, ...feed].slice(0, MAX_ITEMS);
       added++;
-      console.log(`[tronMints] ${entry.type} ${amount} USDT`);
+      console.log(`[tronMints] Transfer ${entry.type} ${amount} USDT`);
     }
+
+    // Handle Issue events (Tether's official mint)
+    for (const ev of issues) {
+      const r = ev.result || {};
+      const amount = Number(r.amount || r.value || r.in_amount || 0) / 1e6;
+      if (amount < 1000) continue;
+      const entry = {
+        type: "mint",
+        amount,
+        hash: ev.transaction_id || ev.transaction,
+        timestamp: ev.block_timestamp || Date.now(),
+      };
+      if (feed.some(f => f.hash === entry.hash)) continue;
+      feed = [entry, ...feed].slice(0, MAX_ITEMS);
+      added++;
+      console.log(`[tronMints] Issue mint ${amount} USDT`);
+    }
+
+    // Sort by timestamp descending
+    feed.sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
+    feed = feed.slice(0, MAX_ITEMS);
+
     seenSince = now;
     if (added > 0) await saveToRedis();
+    if (added > 0) console.log(`[tronMints] added ${added} new items, total ${feed.length}`);
   } catch (e) {
     console.warn("[tronMints] refresh failed:", e.message);
   }
@@ -115,7 +150,7 @@ async function refresh() {
 async function start() {
   console.log("[tronMints] start() called");
   await loadFromRedis();
-  setTimeout(refresh, 25000);
+  setTimeout(refresh, 20000);
   setInterval(refresh, REFRESH_MS);
 }
 
