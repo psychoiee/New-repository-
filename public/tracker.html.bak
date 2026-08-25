@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="ur">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>WhalePulse — Live Transaction Tracker</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
+
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    min-height: 100vh;
+    background:
+      radial-gradient(ellipse 900px 500px at 15% -10%, rgba(34,227,154,0.10), transparent),
+      radial-gradient(ellipse 700px 500px at 100% 0%, rgba(59,130,246,0.08), transparent),
+      #060a10;
+    color: #d7e2e3;
+    font-family: 'JetBrains Mono', monospace;
+    padding: 28px 20px 60px;
+  }
+
+  .wt-header {
+    max-width: 1080px; margin: 0 auto 20px;
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 16px; flex-wrap: wrap;
+  }
+  .wt-brand { display: flex; align-items: center; gap: 12px; }
+  .wt-brand-mark {
+    width: 38px; height: 38px; border-radius: 10px;
+    background: linear-gradient(145deg, #0e2620, #08150f);
+    border: 1px solid rgba(34,227,154,0.35);
+    display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 0 22px rgba(34,227,154,0.15);
+  }
+  .wt-title {
+    font-family: 'Space Grotesk', sans-serif; font-weight: 700;
+    font-size: 20px; letter-spacing: 0.02em; color: #eafff4;
+  }
+  .wt-title span { color: #22e39a; }
+  .wt-sub {
+    font-size: 11.5px; color: #5f7876; letter-spacing: 0.06em;
+    text-transform: uppercase; margin-top: 2px;
+    display: flex; align-items: center; gap: 6px; cursor: pointer;
+  }
+  .wt-sub:hover { color: #8fd6c4; }
+
+  .wt-live {
+    display: flex; align-items: center; gap: 8px;
+    font-size: 12px; color: #22e39a;
+    background: rgba(34,227,154,0.08);
+    border: 1px solid rgba(34,227,154,0.25);
+    padding: 7px 12px; border-radius: 100px;
+    cursor: pointer; user-select: none;
+  }
+  .wt-live-dot {
+    width: 7px; height: 7px; border-radius: 50%;
+    background: #22e39a; box-shadow: 0 0 8px #22e39a;
+    animation: wt-pulse 1.6s ease-in-out infinite;
+  }
+  .wt-live.paused .wt-live-dot, .wt-live.error .wt-live-dot { animation: none; }
+  .wt-live.paused { color: #8a9c9a; border-color: rgba(255,255,255,0.12); background: rgba(255,255,255,0.03); }
+  .wt-live.error { color: #ff6b6b; border-color: rgba(255,107,107,0.3); background: rgba(255,107,107,0.08); }
+  .wt-live.error .wt-live-dot { background: #ff6b6b; box-shadow: 0 0 8px #ff6b6b; }
+  .wt-live.connecting .wt-live-dot { background: #f3ba2f; box-shadow: 0 0 8px #f3ba2f; }
+
+  @keyframes wt-pulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.5; transform: scale(0.8); }
+  }
+
+  .wt-url-row {
+    max-width: 1080px; margin: 0 auto 16px; display: none;
+    align-items: center; gap: 8px; flex-wrap: wrap;
+  }
+  .wt-url-row.show { display: flex; }
+  .wt-url-input {
+    font-family: 'JetBrains Mono', monospace; font-size: 12px;
+    background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.15);
+    color: #d7e2e3; padding: 6px 10px; border-radius: 8px; outline: none;
+    min-width: 240px;
+  }
+  .wt-url-input:focus { border-color: #22e39a; }
+  .wt-url-btn {
+    font-family: 'JetBrains Mono', monospace; font-size: 12px;
+    background: rgba(34,227,154,0.12); border: 1px solid rgba(34,227,154,0.4);
+    color: #22e39a; padding: 6px 12px; border-radius: 8px; cursor: pointer;
+  }
+
+  .wt-banner {
+    max-width: 1080px; margin: 0 auto 16px; display: none;
+    font-size: 12px; line-height: 1.6;
+    background: rgba(255,107,107,0.08); border: 1px solid rgba(255,107,107,0.25);
+    color: #ffb3b3; padding: 12px 14px; border-radius: 10px;
+  }
+  .wt-banner.show { display: block; }
+  .wt-banner code { color: #ffd9d9; }
+
+  .wt-stats {
+    max-width: 1080px; margin: 0 auto 18px;
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px;
+  }
+  @media (max-width: 640px) { .wt-stats { grid-template-columns: 1fr; } }
+  .wt-stat {
+    background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.07);
+    border-radius: 12px; padding: 14px 16px;
+  }
+  .wt-stat-label {
+    font-size: 10.5px; letter-spacing: 0.08em; text-transform: uppercase;
+    color: #5f7876; margin-bottom: 6px;
+  }
+  .wt-stat-value { font-family: 'Space Grotesk', sans-serif; font-weight: 700; font-size: 22px; color: #eafff4; }
+  .wt-stat-value.accent { color: #22e39a; }
+
+  .wt-controls {
+    max-width: 1080px; margin: 0 auto 16px;
+    display: flex; gap: 10px; flex-wrap: wrap; align-items: center;
+  }
+  .wt-chip {
+    font-family: 'JetBrains Mono', monospace; font-size: 12px;
+    padding: 7px 13px; border-radius: 100px;
+    border: 1px solid rgba(255,255,255,0.1);
+    background: rgba(255,255,255,0.02); color: #9fb3b1;
+    cursor: pointer; transition: all 0.15s ease;
+  }
+  .wt-chip:hover { border-color: rgba(34,227,154,0.4); color: #d7e2e3; }
+  .wt-chip.active { background: rgba(34,227,154,0.14); border-color: #22e39a; color: #22e39a; }
+  .wt-divider { width: 1px; height: 20px; background: rgba(255,255,255,0.1); margin: 0 2px; }
+
+  .wt-table-wrap {
+    max-width: 1080px; margin: 0 auto;
+    border: 1px solid rgba(255,255,255,0.08); border-radius: 14px;
+    overflow-x: auto; overflow-y: hidden; background: rgba(255,255,255,0.015);
+    -webkit-overflow-scrolling: touch;
+  }
+  .wt-row-head, .wt-row {
+    display: grid; grid-template-columns: 56px 56px 1.3fr 1.3fr 1fr 1.1fr;
+    padding: 12px 16px; align-items: center; min-width: 640px;
+  }
+  .wt-row-head {
+    font-size: 10.5px; letter-spacing: 0.08em; text-transform: uppercase;
+    color: #5f7876; border-bottom: 1px solid rgba(255,255,255,0.07);
+  }
+  .wt-row {
+    font-size: 13px; border-bottom: 1px solid rgba(255,255,255,0.045);
+    animation: wt-row-in 0.5s ease;
+  }
+  .wt-row:last-child { border-bottom: none; }
+  .wt-row:hover { background: rgba(255,255,255,0.02); }
+  @keyframes wt-row-in {
+    from { background: rgba(34,227,154,0.12); }
+    to { background: transparent; }
+  }
+
+  .wt-glyph { position: relative; display: inline-flex; }
+  .wt-ripple {
+    position: absolute; inset: -6px;
+    border: 2px solid var(--glyph-color); border-radius: 50%;
+    opacity: 0; animation: wt-splash 1.1s ease-out;
+  }
+  @keyframes wt-splash {
+    0% { transform: scale(0.4); opacity: 0.9; }
+    100% { transform: scale(2.1); opacity: 0; }
+  }
+
+  .wt-time { color: #6b8280; font-size: 12px; }
+  .wt-addr { color: #c3d4d2; font-size: 12.5px; display: flex; align-items: center; gap: 6px; }
+  .wt-qty { color: #d7e2e3; font-weight: 500; }
+  .wt-coin-tag { font-size: 10.5px; color: #8a9c9a; margin-left: 6px; }
+  .wt-chain-tag { font-size: 9.5px; text-transform: uppercase; letter-spacing: 0.05em; color: #6b8280; margin-left: 6px; }
+  .wt-usd { font-weight: 700; color: #eafff4; }
+  .wt-arrow { font-size: 11px; opacity: 0.6; }
+
+  .wt-empty { padding: 40px 16px; text-align: center; color: #5f7876; font-size: 13px; }
+
+  .wt-footer-note {
+    max-width: 1080px; margin: 18px auto 0;
+    font-size: 11px; color: #47605d; line-height: 1.6;
+  }
+</style>
+</head>
+<body>
+
+  <div class="wt-header">
+    <div class="wt-brand">
+      <div class="wt-brand-mark" id="brandGlyph"></div>
+      <div>
+        <div class="wt-title">WHALE<span>PULSE</span> 🇵🇰 🇨🇱</div>
+        <div class="wt-sub" id="urlToggle">backend: <span id="urlLabel">http://localhost:4000</span> ✎</div>
+      </div>
+    </div>
+    <div class="wt-live connecting" id="liveBtn">
+      <span class="wt-live-dot"></span>
+      <span id="liveLabel">Connecting…</span>
+    </div>
+  </div>
+
+  <div class="wt-url-row" id="urlRow">
+    <input class="wt-url-input" id="urlInput" placeholder="http://localhost:4000" value="http://localhost:4000" />
+    <button class="wt-url-btn" id="urlConnectBtn">Connect</button>
+  </div>
+
+  <div class="wt-banner" id="errorBanner">
+    Couldn't reach the backend. Make sure the server is running, or tap ✎ above to change the backend URL.
+  </div>
+
+  <div class="wt-stats">
+    <div class="wt-stat">
+      <div class="wt-stat-label">Alerts matching filter</div>
+      <div class="wt-stat-value" id="statCount">0</div>
+    </div>
+    <div class="wt-stat">
+      <div class="wt-stat-label">Total value tracked</div>
+      <div class="wt-stat-value accent" id="statTotal">$0</div>
+    </div>
+    <div class="wt-stat">
+      <div class="wt-stat-label">Threshold</div>
+      <div class="wt-stat-value" id="statThreshold">$100K+</div>
+    </div>
+  </div>
+
+  <div class="wt-controls" id="thresholdChips"></div>
+  <div class="wt-controls" id="chainChips" style="margin-top:-6px;"></div>
+
+  <div class="wt-table-wrap">
+    <div class="wt-row-head">
+      <div>Coin</div><div>Time</div><div>From</div><div>To</div><div>Amount</div><div>USD Value</div>
+    </div>
+    <div id="tableBody"></div>
+  </div>
+
+
+<script>
+  const COIN_META = {
+    BTC: { color: "#f7931a" }, ETH: { color: "#627eea" }, BNB: { color: "#f3ba2f" },
+    LAB: { color: "#22e39a" }, ENA: { color: "#7c5cff" }, ANDREA: { color: "#ff6bd6" },
+    SOL: { color: "#9945ff" }, POL: { color: "#8247e5" }, ETH: { color: "#627eea" }, TRX: { color: "#ff0013" },
+  };
+  const THRESHOLDS = [
+    { label: "$100K+", value: 100000 }, { label: "$500K+", value: 500000 },
+    { label: "$1M+", value: 1000000 }, { label: "$5M+", value: 5000000 },
+  ];
+  const CHAIN_FILTERS = [
+    { label: "All chains", value: "ALL" }, { label: "Bitcoin", value: "bitcoin" },
+    { label: "Ethereum", value: "ethereum" }, { label: "BSC", value: "bsc" },
+    { label: "Solana", value: "solana" }, { label: "Polygon", value: "polygon" },
+    { label: "Arbitrum", value: "arbitrum" }, { label: "Tron", value: "tron" },
+  ];
+
+  let backendUrl = window.location.origin;
+  document.addEventListener("DOMContentLoaded", () => { document.getElementById("urlLabel").textContent = backendUrl; });
+  let threshold = 100000;
+  let chainFilter = "ALL";
+  let paused = false;
+  let txs = [];
+  let socket = null;
+  let idCounter = 0;
+
+  const whaleSvg = (color, splash) => `
+    <span class="wt-glyph" style="--glyph-color:${color}">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+        <path d="M3 13c2-4 6-7 11-7 4.5 0 7.8 2.6 8.6 6.2.3 1.3-.6 2.3-1.9 2.1l-2.4-.4c-.6 1.7-2.1 2.9-4 3.1-1 3-3.6 3-3.6 3s.8-1.6.6-3.2c-3-.2-6.1-1.4-8.3-3.8Z"
+          stroke="${color}" stroke-width="1.4" fill="${color}" fill-opacity="0.18"/>
+        <circle cx="17.5" cy="10.5" r="0.9" fill="${color}"/>
+      </svg>
+      ${splash ? '<span class="wt-ripple"></span>' : ""}
+    </span>`;
+
+  document.getElementById("brandGlyph").innerHTML = whaleSvg("#22e39a", false);
+
+  function fmtUsd(n) {
+    n = n || 0;
+    if (n >= 1e6) return "$" + (n / 1e6).toFixed(2) + "M";
+    if (n >= 1e3) return "$" + (n / 1e3).toFixed(1) + "K";
+    return "$" + Math.round(n);
+  }
+  function fmtQty(n) {
+    n = n || 0;
+    if (n >= 1e6) return (n / 1e6).toFixed(2) + "M";
+    if (n >= 1e3) return (n / 1e3).toFixed(1) + "K";
+    return n.toFixed(3);
+  }
+  function shortAddr(a) {
+    if (!a) return "unknown";
+    if (a.length <= 14) return a;
+    return a.slice(0, 6) + "…" + a.slice(-4);
+  }
+  function timeAgo(ts) {
+    const s = Math.max(0, Math.floor((Date.now() - ts) / 1000));
+    if (s < 60) return s + "s";
+    const m = Math.floor(s / 60);
+    if (m < 60) return m + "m";
+    return Math.floor(m / 60) + "h";
+  }
+  function explorerUrl(chain, hash) {
+    if (chain === "bitcoin") return "https://www.blockchain.com/explorer/transactions/btc/" + hash;
+    if (chain === "ethereum") return "https://etherscan.io/tx/" + hash;
+    if (chain === "bsc") return "https://bscscan.com/tx/" + hash;
+    return null;
+  }
+
+  function renderChips() {
+    const tEl = document.getElementById("thresholdChips");
+    tEl.innerHTML = THRESHOLDS.map(t =>
+      `<div class="wt-chip ${t.value === threshold ? "active" : ""}" data-th="${t.value}">${t.label}</div>`
+    ).join("") + `<div class="wt-divider"></div>`;
+    tEl.querySelectorAll("[data-th]").forEach(el => {
+      el.onclick = () => { threshold = Number(el.dataset.th); onFilterChange(); };
+    });
+
+    const cEl = document.getElementById("chainChips");
+    cEl.innerHTML = CHAIN_FILTERS.map(c =>
+      `<div class="wt-chip ${c.value === chainFilter ? "active" : ""}" data-chain="${c.value}">${c.label}</div>`
+    ).join("");
+    cEl.querySelectorAll("[data-chain]").forEach(el => {
+      el.onclick = () => { chainFilter = el.dataset.chain; onFilterChange(); };
+    });
+  }
+
+  function render() {
+    document.getElementById("statThreshold").textContent = fmtUsd(threshold) + "+";
+    const filtered = txs.filter(t =>
+      t.usdValue >= threshold && (chainFilter === "ALL" || t.chain === chainFilter)
+    ).slice(0, 25);
+
+    document.getElementById("statCount").textContent = filtered.length;
+    document.getElementById("statTotal").textContent =
+      fmtUsd(filtered.reduce((s, t) => s + t.usdValue, 0));
+
+    const body = document.getElementById("tableBody");
+    if (filtered.length === 0) {
+      body.innerHTML = `<div class="wt-empty">No transactions above this threshold yet — wait a moment or lower the threshold.</div>`;
+      return;
+    }
+    body.innerHTML = filtered.map((t, i) => {
+      const meta = COIN_META[t.symbol] || { color: "#8fd6c4" };
+      const url = explorerUrl(t.chain, t.hash);
+      return `
+        <div class="wt-row" style="cursor:pointer" data-url="${url || ''}">
+          ${whaleSvg(meta.color, i === 0 && !paused)}
+          <div class="wt-time">${timeAgo(t.time)}</div>
+          <div class="wt-addr">${shortAddr(t.from)}</div>
+          <div class="wt-addr"><span class="wt-arrow">→</span> ${shortAddr(t.to)}</div>
+          <div class="wt-qty">${fmtQty(t.amount)}<span class="wt-coin-tag">${t.symbol}</span><span class="wt-chain-tag">${t.chain}</span></div>
+          <div class="wt-usd">${fmtUsd(t.usdValue)}</div>
+        </div>`;
+    }).join("");
+    body.querySelectorAll(".wt-row").forEach(el=>{
+      el.onclick=()=>{ const u=el.dataset.url; if(u) window.open(u, "_blank"); };
+    });
+  }
+
+  function setStatus(status) {
+    const btn = document.getElementById("liveBtn");
+    const label = document.getElementById("liveLabel");
+    btn.className = "wt-live " + status + (paused ? " paused" : "");
+    document.getElementById("errorBanner").classList.toggle("show", status === "error");
+    if (paused) label.textContent = "Paused — tap to resume";
+    else if (status === "connected") label.textContent = "Live";
+    else if (status === "connecting") label.textContent = "Connecting…";
+    else label.textContent = "Not connected";
+  }
+
+  function loadInitial() {
+    setStatus("connecting");
+    fetch(`${backendUrl}/api/transactions?minUsd=${threshold}&chain=${chainFilter}`)
+      .then(r => { if (!r.ok) throw new Error("bad"); return r.json(); })
+      .then(data => {
+        txs = data.map(tx => ({ ...tx, _id: idCounter++, time: tx.timestamp }));
+        setStatus("connected");
+        render();
+      })
+      .catch(() => setStatus("error"));
+  }
+
+  function connectSocket() {
+    if (socket) { try { socket.close(); } catch (e) {} }
+    if (paused) return;
+    let wsUrl;
+    try { wsUrl = backendUrl.replace(/^http/, "ws") + "/ws"; } catch (e) { return; }
+    socket = new WebSocket(wsUrl);
+    socket.onopen = () => setStatus("connected");
+    socket.onerror = () => setStatus("error");
+    socket.onclose = () => { setStatus("error"); if (!paused) setTimeout(connectSocket, 4000); };
+    socket.onmessage = (event) => {
+      try {
+        const msg = JSON.parse(event.data);
+        if (msg.type === "transaction") {
+          txs = [{ ...msg.data, _id: idCounter++, time: msg.data.timestamp }, ...txs].slice(0, 60);
+          render();
+        }
+      } catch (e) {}
+    };
+  }
+
+  function onFilterChange() {
+    renderChips();
+    loadInitial();
+  }
+
+  document.getElementById("urlToggle").onclick = () => {
+    document.getElementById("urlRow").classList.toggle("show");
+    document.getElementById("urlInput").value = backendUrl;
+  };
+  document.getElementById("urlConnectBtn").onclick = () => {
+    backendUrl = document.getElementById("urlInput").value.trim() || "http://localhost:4000";
+    document.getElementById("urlLabel").textContent = backendUrl;
+    document.getElementById("urlRow").classList.remove("show");
+    loadInitial();
+    connectSocket();
+  };
+  document.getElementById("liveBtn").onclick = () => {
+    paused = !paused;
+    setStatus(paused ? "connected" : "connecting");
+    if (paused) { if (socket) socket.close(); }
+    else connectSocket();
+  };
+
+  renderChips();
+  loadInitial();
+  connectSocket();
+  setInterval(render, 1000); // keep "time ago" labels fresh
+</script>
+</body>
+  </html>
